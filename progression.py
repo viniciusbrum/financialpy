@@ -27,12 +27,12 @@ class Progression(metaclass=ABCMeta):
     @staticmethod
     @abstractmethod
     def get_ratio(term_1, term_2):
-        """Returns the ratio between two terms."""
+        """Calculates the ratio between two terms."""
         pass
 
     @abstractmethod
     def sum_first_terms(self, n):
-        """Returns the sum of n first terms."""
+        """Calculates the sum of n first terms."""
         pass
 
     def n_first_terms(self, n):
@@ -60,7 +60,7 @@ class ArithmeticProgression(Progression):
 
     @staticmethod
     def get_ratio(term_1, term_2):
-        """Returns the ratio between two terms."""
+        """Calculates the ratio between two terms."""
         return term_2 - term_1
 
     @staticmethod
@@ -87,7 +87,7 @@ class ArithmeticProgression(Progression):
         return self.terms[n]
 
     def sum_first_terms(self, n):
-        """Returns the sum of n first terms."""
+        """Calculates the sum of n first terms."""
         self._check_index(n)
         return n*(self.terms[1] + self.nth_term(n)) / 2
 
@@ -97,7 +97,7 @@ class GeometricProgression(Progression):
 
     @staticmethod
     def get_ratio(term_1, term_2):
-        """Returns the ratio between two terms."""
+        """Calculates the ratio between two terms."""
         return term_2 / term_1
 
     @staticmethod
@@ -124,7 +124,7 @@ class GeometricProgression(Progression):
         return self.terms[n]
 
     def sum_first_terms(self, n):
-        """Returns the sum of n first terms."""
+        """Calculates the sum of n first terms."""
         self._check_index(n)
 
         if self.ratio == 1:
