@@ -37,14 +37,62 @@ class AbstractInterest(metaclass=ABCMeta):
         values."""
         return future_value - present_value
 
-    @staticmethod
-    def interest_rate_period(present_value, future_value=None, interest=None):
+    @classmethod
+    def interest_rate_period(cls, present_value, future_value=None,
+                             interest=None):
         """Calculates the interest rate for the period from the present
         value and future value or interest."""
         if future_value is not None:
-            return future_value/present_value - 1
+            interest = cls.interest(present_value, future_value)
 
         return interest / present_value
+
+    @classmethod
+    def real_interest_rate_period(cls, present_value, inflation_rate,
+                                  interest_rate=None, future_value=None,
+                                  interest=None):
+        """Calculates the real interest rate for the period from the
+        present value, inflation rate, and interest rate, future value
+        or interest."""
+        if interest_rate is None:
+            if future_value is not None:
+                interest_rate = cls.interest_rate_period(present_value,
+                                                         future_value)
+            else:
+                interest_rate = cls.interest_rate_period(present_value,
+                                                         interest=interest)
+
+        return (interest_rate - inflation_rate)/(1 + inflation_rate)
+
+    @classmethod
+    def real_interest_period(cls, present_value, inflation_rate,
+                             interest_rate=None, future_value=None,
+                             interest=None):
+        """Calculates the real interest for the period from the present
+        value, inflation rate, and interest rate, future value or
+        interest."""
+        if interest_rate is None:
+            if future_value is not None:
+                interest_rate = cls.interest_rate_period(present_value,
+                                                         future_value)
+            else:
+                interest_rate = cls.interest_rate_period(present_value,
+                                                         interest=interest)
+
+        return present_value*(interest_rate - inflation_rate)
+
+    @classmethod
+    def real_or_effective_interest_rate(cls, real_interest_rate,
+                                        effective_interest_rate,
+                                        expected_inflation_rate):
+        """Checks the best rate: a real interest rate or a effective
+        interest rate according to expected inflation."""
+        relation = (1 + effective_interest_rate)/(1 + real_interest_rate) - 1
+
+        if expected_inflation_rate > relation:
+            return real_interest_rate
+
+        return effective_interest_rate
 
 
 class SimpleInterest(AbstractInterest):
