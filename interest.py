@@ -4,6 +4,7 @@
 from abc import ABCMeta
 from abc import abstractmethod
 from itertools import zip_longest
+import math
 
 
 class AbstractInterest(metaclass=ABCMeta):
@@ -33,14 +34,13 @@ class AbstractInterest(metaclass=ABCMeta):
         if future_value is not None:
             return future_value - present_value
 
-        return present_value * (cls.accumulation_factor(interest_rate, periods) - 1)
+        return present_value*(cls.accumulation_factor(interest_rate, periods) - 1)
 
     @classmethod
+    @abstractmethod
     def interest_rate(cls, present_value, future_value, periods):
         """Calculates the interest rate."""
-        interest_rate_period = cls.interest_rate_period(
-            present_value, future_value=future_value)
-        return interest_rate_period / periods
+        pass
 
     @classmethod
     def interest_rate_period(cls, present_value, future_value=None,
@@ -53,8 +53,13 @@ class AbstractInterest(metaclass=ABCMeta):
         return interest / present_value
 
     @classmethod
+    def internal_rate_return(cls, present_value, future_value, periods):
+        """Calculates the internal rate of return."""
+        return cls.interest_rate(present_value, future_value, periods)
+
+    @classmethod
     def net_present_value(cls, future_values, interest_rates, periods):
-        """Calculates the present value from a cash flow."""
+        """Calculates the net present value from a cash flow."""
         npv = 0.0
         prev_f = future_values[0]
         prev_i = interest_rates[0]
@@ -70,13 +75,6 @@ class AbstractInterest(metaclass=ABCMeta):
             prev_n = n
 
         return npv
-
-    @classmethod
-    def periods(cls, present_value, future_value, interest_rate):
-        """Calculates the number of periods."""
-        interest_rate_period = cls.interest_rate_period(
-            present_value, future_value=future_value)
-        return interest_rate_period / interest_rate
 
     @classmethod
     def present_value(cls, future_value, interest=None, interest_rate=None,
@@ -163,14 +161,16 @@ class SimpleInterest(AbstractInterest):
         return npv / sum_reduction_factor
 
     @staticmethod
-    def equivalent_interest_rates(interest_rate, from_periods, to_periods):
+    def equivalent_interest_rate(interest_rate, from_periods, to_periods):
         """Calculates a equivalent interest rate."""
         return interest_rate * (to_periods/from_periods)
 
-    @staticmethod
-    def internal_rate_return(present_value, future_value, periods):
-        """Calculates the internal rate of return."""
-        return (future_value/present_value - 1) / periods
+    @classmethod
+    def interest_rate(cls, present_value, future_value, periods):
+        """Calculates the interest rate."""
+        interest_rate_period = cls.interest_rate_period(
+            present_value, future_value=future_value)
+        return interest_rate_period / periods
 
     @staticmethod
     def is_proportional(interest_rate_n, n_periods, interest_rate_m, m_periods,
@@ -179,6 +179,13 @@ class SimpleInterest(AbstractInterest):
         interests_q = interest_rate_n / interest_rate_m
         periods_q = n_periods / m_periods
         return abs(interests_q - periods_q) < tolerance
+
+    @classmethod
+    def periods(cls, present_value, future_value, interest_rate):
+        """Calculates the number of periods."""
+        interest_rate_period = cls.interest_rate_period(
+            present_value, future_value=future_value)
+        return interest_rate_period / interest_rate
 
 
 class CompoundInterest(AbstractInterest):
@@ -189,10 +196,13 @@ class CompoundInterest(AbstractInterest):
         """Calculates the accumulation factor."""
         return (1 + interest_rate) ** periods
 
-    @staticmethod
-    def internal_rate_return(present_value, future_value, periods):
-        """Calculates the internal rate of return."""
-        return (future_value/present_value)**(1/periods) - 1
+    @classmethod
+    def interest_rate(cls, present_value, future_value, periods):
+        """Calculates the interest rate."""
+        interest_rate_period = cls.interest_rate_period(
+            present_value, future_value=future_value)
+        # return interest_rate_period / periods
+        return (1 + interest_rate_period)**(1 / periods) - 1
 
     @classmethod
     def is_equivalent(cls, interest_rate_n, n_periods, interest_rate_m,
@@ -201,6 +211,13 @@ class CompoundInterest(AbstractInterest):
         acc_factor_n = cls.accumulation_factor(interest_rate_n, n_periods)
         acc_factor_m = cls.accumulation_factor(interest_rate_m, m_periods)
         return abs(acc_factor_n - acc_factor_m) < tolerance
+
+    @classmethod
+    def periods(cls, present_value, future_value, interest_rate):
+        """Calculates the number of periods."""
+        interest_rate_period = cls.interest_rate_period(
+            present_value, future_value=future_value)
+        return math.log((1 + interest_rate_period), (1 + interest_rate))
 
 
 if __name__ == '__main__':
@@ -211,8 +228,10 @@ if __name__ == '__main__':
     print(SimpleInterest.present_value(8000, interest_rate=0.02, periods=3))
     print(SimpleInterest.periods(1363.4, 3000, 0.015))
     print(SimpleInterest.interest_rate(1800, 3600, 4))
-    print(SimpleInterest.equivalent_interest_rates(0.18, 90, 1))
-    print(SimpleInterest.equivalent_interest_rates(0.44, 360, 420))
+    print(SimpleInterest.internal_rate_return(1800, 3600, 4))
+    print(SimpleInterest.internal_rate_return(100, 120, 1))
+    print(SimpleInterest.equivalent_interest_rate(0.18, 90, 1))
+    print(SimpleInterest.equivalent_interest_rate(0.44, 360, 420))
     print(SimpleInterest.net_present_value([300], [0.01], [1, 2, 3]))
     print(SimpleInterest.equivalent_future_value([2000, 2500], [0.1], [3, 8],
                                                  [10, 15]))
@@ -225,3 +244,8 @@ if __name__ == '__main__':
         SimpleInterest.future_value(1000, interest_rate=0.036 / 12, periods=15),
         0.072 / 12)
     )
+    print(CompoundInterest.interest_rate(40000, 55700, 68/30))
+    print(CompoundInterest.internal_rate_return(40000, 55700, 68 / 30))
+    print(CompoundInterest.net_present_value([55700], [0.1572816328], [68/30]))
+    print(CompoundInterest.internal_rate_return(100, 120, 1))
+    print(CompoundInterest.periods(40000, 55700, 0.1573))
