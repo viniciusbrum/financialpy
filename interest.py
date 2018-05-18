@@ -201,7 +201,6 @@ class CompoundInterest(AbstractInterest):
         """Calculates the interest rate."""
         interest_rate_period = cls.interest_rate_period(
             present_value, future_value=future_value)
-        # return interest_rate_period / periods
         return (1 + interest_rate_period)**(1 / periods) - 1
 
     @classmethod
@@ -218,34 +217,3 @@ class CompoundInterest(AbstractInterest):
         interest_rate_period = cls.interest_rate_period(
             present_value, future_value=future_value)
         return math.log((1 + interest_rate_period), (1 + interest_rate))
-
-
-if __name__ == '__main__':
-    print(SimpleInterest.interest(100000, interest_rate=0.09, periods=1))
-    print(SimpleInterest.interest(100000, interest_rate=0.09, periods=2))
-    print(SimpleInterest.future_value(20000, interest_rate=0.1, periods=1))
-    print(SimpleInterest.future_value(20000, interest_rate=0.1, periods=5))
-    print(SimpleInterest.present_value(8000, interest_rate=0.02, periods=3))
-    print(SimpleInterest.periods(1363.4, 3000, 0.015))
-    print(SimpleInterest.interest_rate(1800, 3600, 4))
-    print(SimpleInterest.internal_rate_return(1800, 3600, 4))
-    print(SimpleInterest.internal_rate_return(100, 120, 1))
-    print(SimpleInterest.equivalent_interest_rate(0.18, 90, 1))
-    print(SimpleInterest.equivalent_interest_rate(0.44, 360, 420))
-    print(SimpleInterest.net_present_value([300], [0.01], [1, 2, 3]))
-    print(SimpleInterest.equivalent_future_value([2000, 2500], [0.1], [3, 8],
-                                                 [10, 15]))
-    print(SimpleInterest.equivalent_future_value([100000, 120000], [0.05],
-                                                 [2, 6], [4]))
-    print(SimpleInterest.equivalent_future_value([100000, 120000], [0.1],
-                                                 [2, 6], [4]))
-    print(SimpleInterest.periods(
-        418,
-        SimpleInterest.future_value(1000, interest_rate=0.036 / 12, periods=15),
-        0.072 / 12)
-    )
-    print(CompoundInterest.interest_rate(40000, 55700, 68/30))
-    print(CompoundInterest.internal_rate_return(40000, 55700, 68 / 30))
-    print(CompoundInterest.net_present_value([55700], [0.1572816328], [68/30]))
-    print(CompoundInterest.internal_rate_return(100, 120, 1))
-    print(CompoundInterest.periods(40000, 55700, 0.1573))
